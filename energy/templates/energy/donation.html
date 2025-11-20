@@ -1,0 +1,32 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Donate Energy{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2>Donate Energy to User</h2>
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 2rem 0;">
+        <p>Available Surplus: {{ surplus }} kWh</p>
+        <p>Donate your surplus energy to another user</p>
+    </div>
+    {% if surplus > 0 %}
+    <form method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Recipient Energy Number</label>
+            <input type="text" name="energy_number" placeholder="EN01002" required>
+            <small>Enter the energy number of the user you want to donate to</small>
+        </div>
+        <div class="form-group">
+            <label>Amount to Donate (kWh)</label>
+            <input type="number" name="amount" step="0.01" max="{{ surplus }}" required>
+        </div>
+        <button type="submit" class="btn">Donate Energy</button>
+        <a href="{% url 'energy:dashboard' %}" class="btn" style="background: #95a5a6; margin-left: 0.5rem;">Cancel</a>
+    </form>
+    {% else %}
+    <p>You need surplus energy to donate</p>
+    <a href="{% url 'energy:dashboard' %}" class="btn">Back to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}

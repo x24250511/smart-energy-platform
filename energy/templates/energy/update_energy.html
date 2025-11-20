@@ -1,0 +1,27 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Update Energy{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2>Update Energy Data</h2>
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 2rem 0;">
+        <p>Current Generated: {{ user.generated }} kWh</p>
+        <p>Current Consumed: {{ user.consumed }} kWh</p>
+        <p>Current Surplus: {{ surplus }} kWh</p>
+    </div>
+    <form method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Energy Generated (kWh)</label>
+            <input type="number" name="generated" step="0.01" value="{{ user.generated }}" required>
+        </div>
+        <div class="form-group">
+            <label>Energy Consumed (kWh)</label>
+            <input type="number" name="consumed" step="0.01" value="{{ user.consumed }}" required>
+        </div>
+        <button type="submit" class="btn">Update</button>
+        <a href="{% url 'energy:dashboard' %}" class="btn" style="background: #95a5a6; margin-left: 0.5rem;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

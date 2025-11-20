@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Loan Energy{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h2>Loan Energy to Others</h2>
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 2rem 0;">
+        <p>Available Surplus: {{ surplus }} kWh</p>
+        <p>Loan Rate: 0.10 credits per kWh</p>
+    </div>
+    {% if surplus > 0 %}
+    <form method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Recipient</label>
+            <select name="recipient" required>
+                <option value="">Select user</option>
+                {% for other_user in other_users %}
+                <option value="{{ other_user.id }}">{{ other_user.name }} ({{ other_user.energy_number }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Amount to Loan (kWh)</label>
+            <input type="number" name="amount" step="0.01" max="{{ surplus }}" required>
+        </div>
+        <button type="submit" class="btn">Loan Energy</button>
+        <a href="{% url 'energy:dashboard' %}" class="btn" style="background: #95a5a6; margin-left: 0.5rem;">Cancel</a>
+    </form>
+    {% else %}
+    <p>You need surplus energy to loan</p>
+    <a href="{% url 'energy:dashboard' %}" class="btn">Back to Dashboard</a>
+    {% endif %}
+</div>
+{% endblock %}
