@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from smart_energy_lib import EnergyAccount
+from smart_energy_manager_lib import EnergyAccount
 
 class EnergyUserManager(BaseUserManager):
     def create_user(self, energy_number, name, password=None):
