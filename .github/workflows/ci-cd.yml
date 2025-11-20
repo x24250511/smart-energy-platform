@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # Step 1: Check Code
+  check:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    - name: Install tools
+      run: |
+        pip install flake8 bandit
+    - name: Check code quality
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Check security
+      run: |
+        bandit -r . --exit-zero
+
+  # Step 2: Test Application
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: [check]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    - name: Run Django checks
+      run: |
+        python manage.py check
+    - name: Run tests
+      run: |
+        python manage.py test
+
+  # Step 3: Deploy to Production
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Deploy to server
+      env:
+        PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+        HOST: ${{ secrets.EC2_HOST }}
+      run: |
+        echo "$PRIVATE_KEY" > key.pem
+        chmod 600 key.pem
+        scp -i key.pem -o StrictHostKeyChecking=no -r ./* ubuntu@$HOST:~/energy_platform/
+        ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@$HOST << 'ENDSSH'
+          cd ~/energy_platform
+          source venv/bin/activate
+          pip install -r requirements.txt
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+          sudo rsync -av --exclude='venv' --exclude='*.pyc' --exclude='db.sqlite3' ~/energy_platform/ /var/www/smart-energy-platform/
+          sudo systemctl restart energy-platform
+        ENDSSH
+        rm key.pem
